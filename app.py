@@ -13,10 +13,13 @@ from flask import (
 
 import sendgrid
 from datetime import date
+import ssl
+import uuid
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # App setup
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "some_really_long_random_string_here"
+app.config["SECRET_KEY"] = uuid.uuid4()  # Secret key, uses uuid to make it safer
 
 # Get details for sendgrid details
 sendgrid_file = "sendgrid.txt"
@@ -209,8 +212,8 @@ def send():
     sender = request.form["email"]
     subject = request.form["name"]
     body = request.form["message"]
-    message.add_to("charlie.thomas@attwoodthomas.net")
-    message.set_from(sender)
+    message.add_to("samzhang951@outlook.com")
+    message.set_from("noreply@tomthefrog.com")
     message.set_subject(subject)
     message.set_html(body)
     sendgrid_object.send(message)
