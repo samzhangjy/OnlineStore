@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <div class="section page">
+        <div class="wrapper">
+            <h1>Register</h1>
+            <p>Register an account right here!</p>
+            <form method="post">
+                <table>
+                    <tr>
+                        <th>
+                            <label for="username">Username</label>
+                        </th>
+                        <td>
+                            <input type="text" name="username" id="username">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="password">Password</label>
+                        </th>
+                        <td>
+                            <input type="password" name="password" id="password">
+                        </td>
+                    </tr>
+                </table>
+                <input type="submit" value="Register">
+            </form>
+        </div>
+    </div>
+{% endblock %}

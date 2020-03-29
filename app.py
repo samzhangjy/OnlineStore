@@ -24,10 +24,10 @@ app.config.update(  # App config
     SECRET_KEY=str(uuid.uuid4()),
     DEBUG=os.environ.get('FLASK_DEBUG') or False,
     # Database
-    SQLALCHEMY_DATABASE_URI=os.environ.get('DEV_DATABASE_URI') or 'mysql+pymysql://root:%s@localhost:3306/%s' \
+    SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URI') or 'mysql+pymysql://root:%s@localhost:3306/%s' \
                                                                   '?charset' \
-                                                                  '=utf8mb4' % (os.environ.get('DEV_DATABASE_PASS'),
-                                                                                os.environ.get('DEV_DATABASE_NAME')),
+                                                                  '=utf8mb4' % (os.environ.get('DATABASE_PASS'),
+                                                                                os.environ.get('DATABASE_NAME')),
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 )
 
@@ -389,6 +389,26 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Register an user account"""
+    if request.method == 'POST':
+        # Get form data
+        username = request.form.get('username')
+        password = request.form.get('password')
+        # If the user with the same username already exists, tell the user
+        if User.query.filter_by(username=username).first() is not None:
+            flash('Username already exists. Please choose another one.')
+            return redirect(url_for('register'))
+        # Create user
+        user = User(username=username, password=password)
+        db.session.add(user)  # Add user to the current session
+        db.session.commit()  # Commit it to the whole database
+        flash('Account registered! You can login now.')
+        return redirect(url_for('login'))  # Return to the login view to let the user login
+    return render_template('register.html')
+
+
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)  # Get the current base url
     test_url = urlparse(urljoin(request.host_url, target))  # Turn the target url to the absolute url
@@ -398,4 +418,4 @@ def is_safe_url(target):
 
 # Run application
 if __name__ == "__main__":
-    app.run(debug=True)  # With debug. If you are running in production, set it to False
+    app.run(debug=app.config['DEBUG'])  # With debug. If you are running in production, set it to False
