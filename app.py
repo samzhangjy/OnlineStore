@@ -7,15 +7,8 @@ from datetime import date
 
 import sendgrid
 # Import statement
-from flask import (
-    Flask,
-    render_template,
-    Markup,
-    url_for,
-    flash,
-    redirect,
-    request
-)
+from flask import Flask, render_template, Markup, url_for, flash, redirect, request
+
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -111,6 +104,7 @@ class Product(db.Model):
     all sizes for it
     :param description: the description for the product, and unlimited length
     :param cover_image: the image cover for the product, with a string under 64 letters, which will stored in ./static
+    :param textual: the textual of the product, a string under 64 letters
     """
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
@@ -121,6 +115,7 @@ class Product(db.Model):
                             backref=db.backref('product', lazy='joined'))
     description = db.Column(db.Text)
     cover_image = db.Column(db.String(64))
+    textual = db.Column(db.String(64))
 
     def __repr__(self):
         return '<Product %s>' % self.name
