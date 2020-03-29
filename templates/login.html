@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <div class="section page">
+        <div class="wrapper">
+            <h1>Login</h1>
+            <p>Login to your account!</p>
+            <form method="post">
+                <table>
+                    <tr>
+                        <th>
+                            <label for="username">Username</label>
+                        </th>
+                        <td>
+                            <input type="text" name="username" id="username">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="password">Password</label>
+                        </th>
+                        <td>
+                            <input type="password" name="password" id="password">
+                        </td>
+                    </tr>
+                </table>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <label for="remember">Remember Me</label>
+                    <input type="checkbox" name="remember" id="remember">
+                </div>
+                <input type="submit" value="Login">
+            </form>
+        </div>
+    </div>
+{% endblock %}

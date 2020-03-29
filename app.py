@@ -4,6 +4,7 @@ import os
 import ssl
 import uuid
 from datetime import date
+from urllib.parse import urljoin, urlparse
 
 import sendgrid
 # Import statement
@@ -12,13 +13,15 @@ from flask import Flask, render_template, Markup, url_for, flash, redirect, requ
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 
-ssl._create_default_https_context = ssl._create_unverified_context  # Setting ssl due to it has some errors with sendgrid
+# Setting ssl due to it has some errors with SendGrid
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # App setup
 app = Flask(__name__)
 app.config.update(  # App config
-    SECRET_KEY=uuid.uuid4(),
+    SECRET_KEY=str(uuid.uuid4()),
     DEBUG=os.environ.get('FLASK_DEBUG') or False,
     # Database
     SQLALCHEMY_DATABASE_URI=os.environ.get('DEV_DATABASE_URI') or 'mysql+pymysql://root:%s@localhost:3306/%s' \
@@ -31,6 +34,15 @@ app.config.update(  # App config
 # App extensions
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'  # Set the login view
+
+
+# User loader for flask-login
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(id)
+
 
 # Get details for sendgrid details
 sendgrid_file = "sendgrid.txt"
@@ -121,7 +133,7 @@ class Product(db.Model):
         return '<Product %s>' % self.name
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     """
     The user model.
     :param id: the id of this user, an integer
@@ -285,7 +297,6 @@ def index():
                 Markup(get_list_view_html(product))
             )
     context["product_data"] = Markup("".join(product_data))
-    flash("This site is a demo do not buy anything")
     return render_template("index.html", **context)
 
 
@@ -297,7 +308,6 @@ def shirts():
     for product in products_info:
         product_data.append(Markup(get_list_view_html(product)))
     context["product_data"] = Markup("".join(product_data))
-    flash("This site is a demo do not buy anything")
     return render_template("shirts.html", **context)
 
 
@@ -310,7 +320,6 @@ def shirt(product_id):
         if product["id"] == product_id:
             my_product = product
     context["product"] = my_product
-    flash("This site is a demo do not buy anything")
     return render_template("shirt.html", **context)
 
 
@@ -338,7 +347,7 @@ def send():
     sender = request.form["email"]
     subject = request.form["name"]
     body = request.form["message"]
-    message.add_to("samzhang951@outlook.com")
+    message.add_to(sender)
     message.set_from("noreply@tomthefrog.com")
     message.set_subject(subject)
     message.set_html(body)
@@ -347,6 +356,46 @@ def send():
     return redirect(url_for("contact"))
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Route for login"""
+    if request.method == 'POST':
+        # Get user information
+        username = request.form.get('username')
+        password = request.form.get('password')
+        remember = request.form.get('remember')
+        # Get user
+        user = User.query.filter_by(username=username).first()
+        # If the user is valid and the password is correct, login user
+        if user is not None and user.verify_password(password):
+            login_user(user, remember)
+            flash('Login success!')
+            next = request.args.get('next')  # Get the next arg from the url, can be generated from flask-login
+            if next and is_safe_url(next):  # If the `next` is valid and it's safe, return back to it
+                return redirect(next)
+            return redirect(url_for('index'))  # Else, go back to the home page
+        # Otherwise, the user either not here or the password is incorrect
+        flash('Incorrect username or password. Please try again.')
+        return redirect(url_for('login'))  # Go back to login view
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required  # Login required because you can't logout before you are logged in!
+def logout():
+    """Logout function for the users"""
+    logout_user()  # Logout the current user using logout_user() - simple!
+    flash('You have now logged out.')
+    return redirect(url_for('index'))
+
+
+def is_safe_url(target):
+    ref_url = urlparse(request.host_url)  # Get the current base url
+    test_url = urlparse(urljoin(request.host_url, target))  # Turn the target url to the absolute url
+    # Validate if it is the url inside our website and it's a real url with prefix of http or https
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
+
 # Run application
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True)  # With debug. If you are running in production, set it to False
