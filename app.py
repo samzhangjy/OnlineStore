@@ -4,11 +4,12 @@ import os
 import ssl
 import uuid
 from datetime import date
+from functools import wraps
 from urllib.parse import urljoin, urlparse
 
 import sendgrid
 # Import statement
-from flask import Flask, render_template, Markup, url_for, flash, redirect, request
+from flask import Flask, render_template, Markup, url_for, flash, redirect, request, session
 
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -22,6 +23,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 app = Flask(__name__)
 app.config.update(  # App config
     SECRET_KEY=str(uuid.uuid4()),
+    # Change this to True if you want it to be debugged by default
     DEBUG=os.environ.get('FLASK_DEBUG') or False,
     # Database
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URI') or 'mysql+pymysql://root:%s@localhost:3306/%s' \
@@ -54,56 +56,6 @@ with open(sendgrid_file) as f:
 
 
 # Database models
-class AddSize(db.Model):
-    """
-    A connect model between Size and Product. Use this model to add a new size for a product.
-    :param size_id: the id of the given size
-    :param product_id: the id of the given product
-    :param size: a foreignkey linked from model `Size`
-    :param product: a foreignkey linked from model `Product`
-
-    You must provide two params to use it - size and product. The other two can be filled automatically:
-
-    >>> add_size = AddSize(size=size_small, product=test_product)
-    >>> db.session.add(add_size)
-    >>> db.session.commit()
-    >>> size_small.products
-    [<AddSize 2; 2>]
-    >>> test_product.sizes
-    [<AddSize 2; 2>]
-
-    """
-    __tablename__ = 'addsizes'
-    size_id = db.Column(db.Integer, db.ForeignKey('sizes.id'))
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), primary_key=True)
-
-    def __repr__(self):
-        return '<AddSize %d; %d>' % (self.size_id, self.product_id)
-
-
-class Size(db.Model):
-    """
-    The model for sizes. See `AddSize` to know how to connect it with `Product`.
-    :param id: the id for this size, also the primary_key
-    :param name: the name for this size, needs to be a string under 64 letters
-    :param products: foreignkey. A relationship to model `AddSize`. You can also use this to check the products under
-    this size.
-
-    It's very simple to use it, you just need to provide param name:
-    >>> size_small = Size(name='Small')
-    >>> db.session.add(size_small)
-    >>> db.session.commit()
-
-    """
-    __tablename__ = 'sizes'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
-    products = db.relationship('AddSize', foreign_keys=[AddSize.size_id],
-                               backref=db.backref('size', lazy='joined'))
-
-    def __repr__(self):
-        return '<Size %s>' % self.name
-
 
 class Product(db.Model):
     """
@@ -112,19 +64,15 @@ class Product(db.Model):
     :param name: the name for the product, which needs to be a string under 64 letters
     :param price: the price for the product, an integer
     :param paypal: the PayPal-code for the product for payment, a string under 128 letters
-    :param sizes: all available sizes for the product, also a foreignkey to connect with `AddSize`. Use it to checkout
-    all sizes for it
     :param description: the description for the product, and unlimited length
     :param cover_image: the image cover for the product, with a string under 64 letters, which will stored in ./static
     :param textual: the textual of the product, a string under 64 letters
     """
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64))
     price = db.Column(db.Integer)
     paypal = db.Column(db.String(128))
-    sizes = db.relationship('AddSize', foreign_keys=[AddSize.product_id],
-                            backref=db.backref('product', lazy='joined'))
     description = db.Column(db.Text)
     cover_image = db.Column(db.String(64))
     textual = db.Column(db.String(64))
@@ -174,7 +122,8 @@ products_info = [
         "img": "shirt-101.jpg",
         "price": 18,
         "paypal": "LNRBY7XSXS5PA",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "cotton"
     },
 
     {
@@ -273,13 +222,24 @@ def get_list_view_html(product):
     output = output + '<a href="' + shirt_url + '">'
     output = (
             output + '<img src="' + image_url +
-            '" al  t="' + product["name"] + '">')
+            '" alt="' + product["name"] + '">')
     output = output + "<p>View Details</p>"
     output = output + "</a>"
     output = output + "</li>"
 
     return output
 
+
+@app.cli.command()
+def insert():
+    """Insert sizes."""
+    sizes = ['Extra Small', 'Small', 'Medium', 'Large', 'Extra Large']
+    for size in sizes:
+        if Size.query.filter_by(name=size).first() is None:
+            size_ = Size(name=size)
+            db.session.add(size_)
+    db.session.commit()
+    print('Sizes inserted!')
 
 # Routes
 # All functions should have a page_title variables if they render templates
@@ -409,6 +369,76 @@ def register():
     return render_template('register.html')
 
 
+def admin_required(func):
+    """Function to tell if the current user is logged in as an admin or not"""
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if session.get('ADMIN') is None or not session.get('ADMIN') or session.get('ADMIN_LOGGED_OUT'):
+            return redirect(url_for('index'))
+        return func(*args, **kwargs)
+    return decorated_view
+
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == os.environ.get('ADMIN_USERNAME') and password == os.environ.get('ADMIN_PASSWORD'):
+            session['ADMIN'] = True
+            flash('You have now logged in as admin.')
+            return redirect(url_for('admin'))
+        flash('Invalid username or password. Please try again.')
+        return redirect(url_for('admin_login'))
+    return render_template('admin/login.html')
+
+
+@app.route('/admin/logout')
+@admin_required
+def admin_logout():
+    session['ADMIN'] = False
+    return redirect(url_for('index'))
+
+
+@app.route('/admin')
+@admin_required
+def admin():
+    products = Product.query.all()
+    return render_template('admin/index.html', products=products)
+
+
+@app.route('/admin/delete/<int:id>')
+@admin_required
+def admin_delete(id):
+    product = Product.query.get_or_404(id)
+    db.session.commit()
+    db.session.delete(product)
+    db.session.commit()
+    flash('Product deleted successfully.')
+    return redirect(url_for('admin'))
+
+
+@app.route('/admin/new', methods=['GET', 'POST'])
+@admin_required
+def admin_new():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        price = int(request.form.get('price'))
+        paypal = request.form.get('paypal')
+        description = request.form.get('description')
+        textual = request.form.get('textual')
+        image = request.form.get('image')
+        if Product.query.filter_by(name=name).first() is not None:
+            flash('Product with the same name already exists. Please choose another one.')
+            return redirect(url_for('admin_new'))
+        product = Product(name=name, price=price, paypal=paypal, description=description, textual=textual, cover_image=image)
+        db.session.add(product)
+        db.session.commit()
+        flash('New product added successfully!')
+        return redirect(url_for('admin'))
+    return render_template('admin/new.html')
+
+
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)  # Get the current base url
     test_url = urlparse(urljoin(request.host_url, target))  # Turn the target url to the absolute url
@@ -418,4 +448,4 @@ def is_safe_url(target):
 
 # Run application
 if __name__ == "__main__":
-    app.run(debug=app.config['DEBUG'])  # With debug. If you are running in production, set it to False
+    app.run(debug=bool(app.config['DEBUG']))  # With debug. If you are running in production, set it to False

@@ -14,7 +14,7 @@
 
             <div class="shirt-details">
 
-                <h1><span class="price">${{ product["price"] }}</span> {{ product["name"] }}</h1>
+                <h1><span class="price">${{ product["price"] }}</span> {{ product["name"] }} <h3>textual: {{ product["textual"] }}</h3></h1>
 
                 <form target="paypal" action="https://www.paypal.com/cgi-bin/webscr" method="post">
                     <input type="hidden" name="cmd" value="_s-xclick">

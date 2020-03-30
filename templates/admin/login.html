@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <div class="section page">
+        <div class="wrapper">
+            <h1>Login</h1>
+            <p>Login to the administration</p>
+            <form method="post">
+                <table>
+                    <tr>
+                        <th>
+                            <label for="username">Username</label>
+                        </th>
+                        <td>
+                            <input type="text" name="username" id="username">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="password">Password</label>
+                        </th>
+                        <td>
+                            <input type="password" name="password" id="password">
+                        </td>
+                    </tr>
+                </table>
+                <input type="submit" value="Login">
+            </form>
+        </div>
+    </div>
+{% endblock %}

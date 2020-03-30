@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <div class="page section">
+        <div class="wrapper">
+            <h1>New Product</h1>
+            <p>Add a new product</p>
+            <form method="post">
+                <table>
+                    <tr>
+                        <th>
+                            <label for="name">Product Name</label>
+                        </th>
+                        <td>
+                            <input type="text" name="name" id="name" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="price">Price</label>
+                        </th>
+                        <td>
+                            <input type="number" name="price" id="price">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="paypal">PayPal Code</label>
+                        </th>
+                        <td>
+                            <input type="text" name="paypal" id="paypal" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="textual">Textual</label>
+                        </th>
+                        <td>
+                            <input type="text" name="textual" id="textual" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="description">Description</label>
+                        </th>
+                        <td>
+                            <textarea name="description" id="description" required></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="image">Cover Name</label>
+                        </th>
+                        <td>
+                            <input type="text" name="image" id="image" required>
+                        </td>
+                    </tr>
+                </table>
+                <input type="submit" value="Add A New Product">
+            </form>
+        </div>
+    </div>
+{% endblock %}
