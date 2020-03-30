@@ -230,17 +230,6 @@ def get_list_view_html(product):
     return output
 
 
-@app.cli.command()
-def insert():
-    """Insert sizes."""
-    sizes = ['Extra Small', 'Small', 'Medium', 'Large', 'Extra Large']
-    for size in sizes:
-        if Size.query.filter_by(name=size).first() is None:
-            size_ = Size(name=size)
-            db.session.add(size_)
-    db.session.commit()
-    print('Sizes inserted!')
-
 # Routes
 # All functions should have a page_title variables if they render templates
 
