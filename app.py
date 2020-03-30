@@ -20,9 +20,11 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # App setup
 app = Flask(__name__)
+
 app.config.update(  # App config
     SECRET_KEY=str(uuid.uuid4()),
-    DEBUG=os.environ.get('FLASK_DEBUG') or False,
+
+    DEBUG=os.environ.get('FLASK_DEBUG') or True,
     # Database
     SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URI') or 'mysql+pymysql://root:%s@localhost:3306/%s' \
                                                                   '?charset' \
@@ -170,56 +172,62 @@ class User(db.Model, UserMixin):
 products_info = [
     {
         "id": "101",
-        "name": "Logo Shirt, Red",
+        "name": "Logo Shirt, White",
         "img": "shirt-101.jpg",
         "price": 18,
         "paypal": "LNRBY7XSXS5PA",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "cotton"
     },
 
     {
         "id": "102",
-        "name": "Mike the Frog Shirt, Black",
+        "name": "Sports Shirt, Yellow",
         "img": "shirt-102.jpg",
         "price": 20,
         "paypal": "XP8KRXHEXMQ4J",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "cotton"
     },
 
     {
         "id": "103",
-        "name": "Mike the Frog Shirt, Blue",
+        "name": "Sports Shirt, Red",
         "img": "shirt-103.jpg",
         "price": 20,
         "paypal": "95C659J3VZGNJ",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "polyester"
     },
 
     {
         "id": "104",
-        "name": "Logo Shirt, Green",
+        "name": "Logo Shirt, Black",
         "img": "shirt-104.jpg",
         "price": 18,
         "paypal": "Z5EY4SJN64SLU",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "cotton"
     },
 
     {
         "id": "105",
-        "name": "Mike the Frog Shirt, Yellow",
+        "name": "Pure Shirt, White",
         "img": "shirt-105.jpg",
         "price": 25,
         "paypal": "RYAGP5EWG4V4G",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "cotton"
     },
 
     {
         "id": "106",
-        "name": "Logo Shirt, Gray",
+        "name": "Vest, White",
         "img": "shirt-106.jpg",
         "price": 20,
         "paypal": "QYHDD4N4SMUKN",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "polyester"
     },
 
     {
@@ -228,16 +236,18 @@ products_info = [
         "img": "shirt-107.jpg",
         "price": 20,
         "paypal": "RSDD7RPZFPQTQ",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "polyester"
     },
 
     {
         "id": "108",
-        "name": "Mike the Frog Shirt, Orange",
+        "name": "Fashion Shirt, Blue",
         "img": "shirt-108.jpg",
         "price": 25,
         "paypal": "LFRHBPYZKHV4Y",
-        "sizes": ["Small", "Medium", "Large"]
+        "sizes": ["Small", "Medium", "Large"],
+        "textual": "cotton"
     }
 ]
 
@@ -287,7 +297,7 @@ def get_list_view_html(product):
 @app.route("/")
 def index():
     """Function for Shirts4Mike Homepage"""
-    context = {"page_title": "Shirts 4 Mike", "current_year": date.today().year}
+    context = {"page_title": "Raven's shop", "current_year": date.today().year}
     counter = 0
     product_data = []
     for product in products_info:
@@ -303,7 +313,7 @@ def index():
 @app.route("/shirts")
 def shirts():
     """Function for the Shirts Listing Page"""
-    context = {"page_title": "Shirts 4 Mike", "current_year": date.today().year}
+    context = {"page_title": "Raven's shop", "current_year": date.today().year}
     product_data = []
     for product in products_info:
         product_data.append(Markup(get_list_view_html(product)))
@@ -314,7 +324,7 @@ def shirts():
 @app.route("/shirt/<product_id>")
 def shirt(product_id):
     """Function for Individual Shirt Page"""
-    context = {"page_title": "Shirts 4 Mike", "current_year": date.today().year}
+    context = {"page_title": "Raven's shop", "current_year": date.today().year}
     my_product = ""
     for product in products_info:
         if product["id"] == product_id:
@@ -326,14 +336,14 @@ def shirt(product_id):
 @app.route("/receipt")
 def receipt():
     """Function to display receipt after purchase"""
-    context = {"page_title": "Shirts 4 Mike", "current_year": date.today().year}
+    context = {"page_title": "Raven's shop", "current_year": date.today().year}
     return render_template("receipt.html", **context)
 
 
 @app.route("/contact")
 def contact():
     """Function for contact page"""
-    context = {"page_title": "Shirts 4 Mike", "current_year": date.today().year}
+    context = {"page_title": "Raven's shop", "current_year": date.today().year}
     return render_template("contact.html", **context)
 
 
@@ -396,6 +406,9 @@ def register():
         # Get form data
         username = request.form.get('username')
         password = request.form.get('password')
+        passwordconfirm = request.form.get('passwordconfirm')
+        if User.password != passwordconfirm :
+            flash('The password does not match the origin password.')
         # If the user with the same username already exists, tell the user
         if User.query.filter_by(username=username).first() is not None:
             flash('Username already exists. Please choose another one.')

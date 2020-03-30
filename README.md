@@ -22,3 +22,7 @@ apikey
 DO NOT MODIFY THE FIRST LINE. OTHERWISE IT WON'T WORK.
 
 **Finally**, you can do `flask run` to run the website, or just run app.py in the root dictionary.
+
+Contactus the email system
+database
+size-choose button for each items

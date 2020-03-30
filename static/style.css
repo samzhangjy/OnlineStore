@@ -538,7 +538,7 @@ body {font-family: 'Oswald', sans-serif; background:#f0eeed; color: #676767;}
 }
 .header .nav li.cart a:hover {background-position: 16px -321px;}
 #content {min-height: 400px; background: white;}
-.section.banner {height: 290px; background: #3d3d3d url('banner-background.jpg') center center no-repeat;}
+.section.banner {height: 290px; background: #3d3d3d url('banner.jpg') center center no-repeat;}
 .section.banner .wrapper {position: relative;}
 .section.banner .hero {position: absolute; top: -89px; left: 177px; z-index: 999;}
 .section.banner .button {

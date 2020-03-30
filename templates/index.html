@@ -3,12 +3,12 @@
 <div class="section banner">
 
 			<div class="wrapper">
-
-				<img class="hero" src="{{ url_for("static", filename="mike-the-frog.png") }}" alt="Mike the Frog says:">
-				<div class="button">
-					<a href="{{ url_for("shirts") }}">
-						<h2>Hey, I&rsquo;m Mike!</h2>
-						<p>Check Out My Shirts</p>
+				
+				<img class="hero" style="width:200px; position: absolute; left:380px; top:90px" top:100px src="{{ url_for("static", filename="yellow.png") }}" alt="Mike the Frog says:">
+	
+				<div class="button" >
+					<a href="{{ url_for("shirts") }}">			
+						<p>Click me to check my clothes</p>
 					</a>
 				</div>
 			</div>
@@ -19,7 +19,7 @@
 
 			<div class="wrapper">
 
-				<h2>Mike&rsquo;s Latest Shirts</h2>
+				<h2>Raven&rsquo;s Latest Clothes</h2>
 
 				<ul class="products">
                     	{{ product_data }}
