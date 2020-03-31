@@ -11,6 +11,9 @@ Then, create a new file called `.env`. It should have content like below:
 DATABASE_PASS=<your-mysql-database-password>
 DATABASE_NAME=<your-mysql-database-name>
 FLASK_DEBUG=<debug-or-not>
+ADMIN_USERNAME = admin
+ADMIN_PASSWORD = admin
+
 ```
 
 Then, create a new file called `sendgrid.txt` and should contain the content below:
@@ -21,8 +24,20 @@ apikey
 
 DO NOT MODIFY THE FIRST LINE. OTHERWISE IT WON'T WORK.
 
-**Finally**, you can do `flask run` to run the website, or just run app.py in the root dictionary.
+**Finally**, run `flask db upgrade` and do `flask run` to run the website, or just run app.py in the root dictionary.
 
-Contactus the email system
-database
+
+
+
+
+
+
+## About the advanced features:
+
+Contactus with the email system
+ineract with database
 size-choose button for each items
+implement the encryption with the secrete key
+hash to deal with pw
+use admin account to add product to the database
+set the cookie to remember your password

@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <div class="section page">
+        <div class="wrapper">
+            <h1>Administration</h1>
+            <hr style="border-bottom: 1px;">
+            <a style="float: right;" href="{{ url_for('admin_new') }}">Add</a>
+            <table style="width: 500px; margin-left:auto; margin-right:auto;" border="1">
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>PayPal</th>
+                    <th>Textual</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+                {% for product in products %} 
+                <tr style="text-align: center;">
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.price }}</td>
+                        <td>{{ product.paypal }}</td>
+                        <td>{{ product.textual }}</td>
+                        <td>{{ product.description | truncate(length=100) }}</td>
+                        <td><a href="{{ url_for('admin_delete', id=product.id) }}">Delete</a></td>         
+                    {% endfor %}
+                </tr>
+            </table>
+        </div>
+    </div>
+{% endblock %}
