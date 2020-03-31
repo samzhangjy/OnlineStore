@@ -37,7 +37,7 @@ DO NOT MODIFY THE FIRST LINE. OTHERWISE IT WON'T WORK.
 Contactus with the email system
 ineract with database
 size-choose button for each items
-implement the encryption with the secrete key
+implement the encryption with the secret key
 hash to deal with pw
 use admin account to add product to the database
 set the cookie to remember your password
